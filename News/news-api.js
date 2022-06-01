@@ -12,7 +12,7 @@ function hideEle(id) { setEleDisplay(id, 'block');}
 
 function makeHeadline(title, output){
       output.push('<div class = "headline">');
-                output.push('<a href="#article" onclick="console.log(\'' + 
+                output.push('<a href="#article" onclick="showGIFS(\'' + 
                 encodeURIComponent(title.replace(/'/g,"\\'")) + 
                 '\')">');
                 output.push(title);
@@ -22,33 +22,40 @@ function makeHeadline(title, output){
         
 }
 
-function showHeadlines() {
-    var headlinesURL = "https://newsapi.org/v2/top-headlines" + 
+function addGIFImg(imageContainerId, imgSrc) {
+    var newIMG = document.createElement('img');
+    newIMG.src = imgSrc;
+    var containerEle = document.getElementById(imageContainerId);
+    containerEle.appendChild(newIMG);
+}
+
+function showGIFS(searchTerm) {
+    document.getElementById('gifs').innerHTML = '';
+    var gifsURL = "http://api.giphy.com/v1/gifs/search" + 
     "?" +
-    "country=us" +
+    "rating=g" +
     "&" +
-    "category=entertainment" + 
+    "q=" + searchTerm +
     "&" +
     "apiKey=97ae53656f8c434aaa80f56a95d5ec60";
 
     var req = new XMLHttpRequest();
-    req.open("GET", headlinesURL, true);
+    req.open("GET", gifsURL, true);
 
     req.onload = function () {
         hideEle('ajax-wait');
-        var newsData = JSON.parse(req.responseText);
-        var output = [];
-        for (var articleIdx = 0; 
-            articleIdx < newsData.articles.length; 
-            articleIdx++){
-            makeHeadline(newsData.articles[articleIdx].title, output);    
-            }      
-        document.getElementById('headlines').innerHTML = output.join('\r');
+        var gifData = JSON.parse(req.responseText);
+        for (var gifIdx = 0; gifIdx < gifData.data.length;gifIdx++) {
+            console.log(gifData.data[gifIdx].images.original.url);
+            addGIFImg('gifs', gifData.data[gifIdx].images.original.url);
+        }
     } ;
         
     req.onerror = function () {
         hideEle('ajax-wait');
-        console.log('success');
+        document.getElementById('error').innerHTML = 
+        'There was an error in retrieving GIFs. Please try again';
+        showEle('error');
     } ;
         
     req.send();
@@ -57,5 +64,5 @@ function showHeadlines() {
 
 }
 
-window.addEventListener('load', showHeadlines);
+window.addEventListener('load', showGIFS);
 
